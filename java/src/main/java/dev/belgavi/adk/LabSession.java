@@ -35,6 +35,21 @@ public final class LabSession implements AutoCloseable {
         .toString();
   }
 
+  /** The identifier every turn of this object reuses. */
+  public String id() {
+    return id;
+  }
+
+  /** Events (user messages, tool calls and results, answers) the session service has stored. */
+  public int storedEventCount() {
+    return runner
+        .sessionService()
+        .getSession(runner.appName(), "demo_user", id, Optional.empty())
+        .blockingGet()
+        .events()
+        .size();
+  }
+
   public Map<String, Object> state() {
     return runner
         .sessionService()

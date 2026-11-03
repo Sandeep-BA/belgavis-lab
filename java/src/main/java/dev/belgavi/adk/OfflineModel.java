@@ -31,11 +31,17 @@ public final class OfflineModel extends BaseLlm {
     String prompt = parts.stream().map(p -> p.text().orElse("")).reduce("", String::concat);
     var match = Pattern.compile("CASE-[0-9]{4}").matcher(prompt);
     String id = match.find() ? match.group() : "CASE-1042";
-    if (role.equals("lookup")) {
-      Map<String, Object> args = Map.of("caseId", id);
+    String tool =
+        switch (role) {
+          case "lookup" -> "lookupCase";
+          case "session" -> prompt.toLowerCase().contains("recall") ? "recallCase" : "selectCase";
+          default -> "";
+        };
+    if (!tool.isEmpty()) {
+      Map<String, Object> args = tool.equals("recallCase") ? Map.of() : Map.of("caseId", id);
       return reply(
           Part.builder()
-              .functionCall(FunctionCall.builder().name("lookupCase").args(args).build())
+              .functionCall(FunctionCall.builder().name(tool).args(args).build())
               .build());
     }
     return reply(

@@ -59,7 +59,7 @@ def test_tool_declaration_carries_the_contract():
 
 def test_unreleased_lessons_say_when_they_arrive():
     with pytest.raises(ValueError, match="later episode"):
-        create_agent(3)
+        create_agent(4)
 
 
 def test_live_mode_fails_closed_without_credentials(monkeypatch):
@@ -67,3 +67,49 @@ def test_live_mode_fails_closed_without_credentials(monkeypatch):
     monkeypatch.delenv("GOOGLE_MODEL", raising=False)
     with pytest.raises(ValueError, match="GOOGLE_API_KEY"):
         create_agent(2, live=True)
+
+
+def test_state_isolation():
+    async def run():
+        async with LabSession(create_agent(3)) as first, LabSession(create_agent(3)) as second:
+            await first.turn("Select CASE-1043")
+            assert "CASE-1043" in await first.turn("Recall")
+            assert "none" in await second.turn("Recall")
+
+    asyncio.run(run())
+
+
+def test_failed_selection_preserves_state():
+    async def run():
+        async with LabSession(create_agent(3)) as session:
+            await session.turn("Select CASE-1043")
+            await session.turn("Select CASE-9999")
+            assert "CASE-1043" in await session.turn("Recall")
+
+    asyncio.run(run())
+
+
+def test_follow_up_in_same_session_remembers_selection():
+    async def run():
+        async with LabSession(create_agent(3)) as session:
+            session_id = session.id
+            await session.turn("Select CASE-1043")
+            after_first = await session.stored_event_count()
+            assert "CASE-1043" in await session.turn("Recall the selected case")
+            assert session.id == session_id
+            assert await session.stored_event_count() > after_first
+
+    asyncio.run(run())
+
+
+def test_new_session_per_turn_loses_selection():
+    async def run():
+        async with LabSession(create_agent(3)) as first:
+            await first.turn("Select CASE-1043")
+            first_id = first.id
+        async with LabSession(create_agent(3)) as second:
+            assert second.id != first_id
+            assert "none" in await second.turn("Recall the selected case")
+            assert "selected_case" not in await second.state()
+
+    asyncio.run(run())

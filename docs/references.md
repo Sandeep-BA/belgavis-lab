@@ -24,6 +24,7 @@ The city/time/weather tutorial illustrates `LlmAgent.builder`, `FunctionTool.cre
 Read the executable lesson first, then the associated article for broader context. The links below resolved successfully when checked. Articles can evolve independently of this release.
 
 - **Lesson 1:** [ADK Java core module](https://aicassindra.com/blogs/adk_java/adk_java_core_module_overview.html). Use it to place the agent, runner and session within the framework.
+- **Lesson 3:** [ADK sessions](https://aicassindra.com/blogs/adk/adk_sessions.html). The application/user/session identity tuple and how events accumulate in one session. Its examples may use the Python SDK.
 
 AICassindra material is by Sandeep Belgavi. It is linked rather than republished. Exact SDK code should be taken from the tested source here and the pinned upstream release, not assumed from conceptual article snippets. No private AICassindra files or local editorial URLs are required by the learner project.
 

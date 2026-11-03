@@ -40,7 +40,7 @@ class LabTest {
 
   @Test
   void unreleasedLessonsSayWhenTheyArrive() {
-    var error = assertThrows(IllegalArgumentException.class, () -> LessonAgents.create(3, false));
+    var error = assertThrows(IllegalArgumentException.class, () -> LessonAgents.create(4, false));
     assertTrue(error.getMessage().contains("later episode"));
   }
 
@@ -65,5 +65,50 @@ class LabTest {
     assertEquals("lookupCase", declaration.name().orElseThrow());
     assertTrue(declaration.description().orElseThrow().contains("CASE-NNNN"));
     assertTrue(declaration.parameters().orElseThrow().toJson().contains("caseId"));
+  }
+
+  @Test
+  void stateIsSessionLocal() {
+    try (var first = new LabSession(LessonAgents.create(3, false));
+        var second = new LabSession(LessonAgents.create(3, false))) {
+      first.turn("Select CASE-1043");
+      assertTrue(first.turn("Recall").contains("CASE-1043"));
+      assertTrue(second.turn("Recall").contains("none"));
+    }
+  }
+
+  @Test
+  void failedSelectionDoesNotOverwriteState() {
+    try (var session = new LabSession(LessonAgents.create(3, false))) {
+      session.turn("Select CASE-1043");
+      session.turn("Select CASE-9999");
+      assertTrue(session.turn("Recall").contains("CASE-1043"));
+    }
+  }
+
+  @Test
+  void followUpInTheSameSessionRemembersTheSelection() {
+    try (var session = new LabSession(LessonAgents.create(3, false))) {
+      String id = session.id();
+      session.turn("Select CASE-1043");
+      int afterFirst = session.storedEventCount();
+      assertTrue(session.turn("Recall the selected case").contains("CASE-1043"));
+      assertEquals(id, session.id());
+      assertTrue(session.storedEventCount() > afterFirst, "history must accumulate in one session");
+    }
+  }
+
+  @Test
+  void newSessionPerTurnLosesTheSelection() {
+    String firstId;
+    try (var first = new LabSession(LessonAgents.create(3, false))) {
+      first.turn("Select CASE-1043");
+      firstId = first.id();
+    }
+    try (var second = new LabSession(LessonAgents.create(3, false))) {
+      assertNotEquals(firstId, second.id());
+      assertTrue(second.turn("Recall the selected case").contains("none"));
+      assertFalse(second.state().containsKey("selected_case"));
+    }
   }
 }
