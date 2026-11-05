@@ -8,7 +8,7 @@ import java.util.Set;
 
 public final class LessonAgents {
   /** Lessons released so far. Each new episode of Belgavi's AI Lab adds its own. */
-  public static final Set<Integer> RELEASED = Set.of(1, 2, 9);
+  public static final Set<Integer> RELEASED = Set.of(1, 2, 3, 9);
 
   private LessonAgents() {}
 
@@ -27,7 +27,14 @@ public final class LessonAgents {
         throw new IllegalArgumentException("Live mode requires GOOGLE_MODEL and GOOGLE_API_KEY.");
       builder.model(model);
     } else builder.model(new OfflineModel(role));
-    if (role.equals("lookup")) builder.tools(FunctionTool.create(new CaseTools(), "lookupCase"));
+    var tools = new CaseTools();
+    switch (role) {
+      case "lookup" -> builder.tools(FunctionTool.create(tools, "lookupCase"));
+      case "session" ->
+          builder.tools(
+              FunctionTool.create(tools, "selectCase"), FunctionTool.create(tools, "recallCase"));
+      default -> {}
+    }
     return builder.build();
   }
 
@@ -35,7 +42,7 @@ public final class LessonAgents {
     if (!RELEASED.contains(lesson))
       throw new IllegalArgumentException(
           "Lesson " + lesson + " arrives with a later episode of Belgavi's AI Lab"
-              + " (youtube.com/@belgaviai). Released so far: 1, 2 and 9.");
+              + " (youtube.com/@belgaviai). Released so far: 1, 2, 3 and 9.");
     return switch (lesson) {
       case 1 ->
           agent(
@@ -43,6 +50,13 @@ public final class LessonAgents {
               "hello",
               "Explain your role as the synthetic help-desk assistant for Belgavi's Book Store"
                   + " in one sentence.",
+              "answer",
+              live);
+      case 3 ->
+          agent(
+              "session",
+              "session",
+              "Select or recall a case as requested, using the tools.",
               "answer",
               live);
       default ->

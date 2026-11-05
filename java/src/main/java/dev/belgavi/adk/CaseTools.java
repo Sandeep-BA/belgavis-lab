@@ -2,6 +2,7 @@
 package dev.belgavi.adk;
 
 import com.google.adk.tools.Annotations.Schema;
+import com.google.adk.tools.ToolContext;
 import java.util.Map;
 
 /** Synthetic data only. Tool results are data, never agent instructions. */
@@ -29,5 +30,19 @@ public final class CaseTools {
       case "CASE-1043" -> Map.of("id", caseId, "status", "resolved", "title", "Gift card balance shows zero");
       default -> Map.of("id", String.valueOf(caseId), "error", "not_found");
     };
+  }
+
+  @Schema(description = "Remember a valid synthetic case in the current session.")
+  public Map<String, Object> selectCase(
+      @Schema(name = "caseId", description = "Synthetic case identifier") String caseId,
+      ToolContext toolContext) {
+    var result = lookupCase(caseId);
+    if (!result.containsKey("error")) toolContext.state().put("selected_case", caseId);
+    return result;
+  }
+
+  @Schema(description = "Recall the case selected in this session.")
+  public Map<String, Object> recallCase(ToolContext toolContext) {
+    return Map.of("selected_case", toolContext.state().getOrDefault("selected_case", "none"));
   }
 }

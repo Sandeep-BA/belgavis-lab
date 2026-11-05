@@ -77,4 +77,4 @@ The Python tool derives its contract from type hints and a docstring. It returns
 
 ## Read next
 
-Lesson 3, sessions and multi-turn conversations, arrives with Episode 3. [AICassindra's Java tools article](https://aicassindra.com/blogs/adk_java/adk_java_tools_advanced.html) explains contract design and validation. This lab implements a small read-only subset, not every mechanism discussed in that article.
+Next: [Lesson 3: sessions](03-sessions.md), why a follow-up must land in the same session. [AICassindra's Java tools article](https://aicassindra.com/blogs/adk_java/adk_java_tools_advanced.html) explains contract design and validation. This lab implements a small read-only subset, not every mechanism discussed in that article.
