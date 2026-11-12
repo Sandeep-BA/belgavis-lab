@@ -83,4 +83,4 @@ The Python `LabSession` also reuses one stored session ID for both turns. The se
 
 ## Read next
 
-Lesson 4, explicit state without cross-session leaks, arrives with Episode 4. [AICassindra's session guide](https://aicassindra.com/blogs/adk/adk_sessions.html) explains the application/user/session identity tuple and accumulated events. Its examples may use the Python SDK.
+Next: [Lesson 4: state](04-state.md), explicit state without cross-session leaks. [AICassindra's session guide](https://aicassindra.com/blogs/adk/adk_sessions.html) explains the application/user/session identity tuple and accumulated events. Its examples may use the Python SDK.

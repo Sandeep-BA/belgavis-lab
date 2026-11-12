@@ -59,7 +59,7 @@ def test_tool_declaration_carries_the_contract():
 
 def test_unreleased_lessons_say_when_they_arrive():
     with pytest.raises(ValueError, match="later episode"):
-        create_agent(4)
+        create_agent(5)
 
 
 def test_live_mode_fails_closed_without_credentials(monkeypatch):
@@ -71,7 +71,7 @@ def test_live_mode_fails_closed_without_credentials(monkeypatch):
 
 def test_state_isolation():
     async def run():
-        async with LabSession(create_agent(3)) as first, LabSession(create_agent(3)) as second:
+        async with LabSession(create_agent(4)) as first, LabSession(create_agent(4)) as second:
             await first.turn("Select CASE-1043")
             assert "CASE-1043" in await first.turn("Recall")
             assert "none" in await second.turn("Recall")
@@ -81,7 +81,7 @@ def test_state_isolation():
 
 def test_failed_selection_preserves_state():
     async def run():
-        async with LabSession(create_agent(3)) as session:
+        async with LabSession(create_agent(4)) as session:
             await session.turn("Select CASE-1043")
             await session.turn("Select CASE-9999")
             assert "CASE-1043" in await session.turn("Recall")
@@ -111,5 +111,30 @@ def test_new_session_per_turn_loses_selection():
             assert second.id != first_id
             assert "none" in await second.turn("Recall the selected case")
             assert "selected_case" not in await second.state()
+
+    asyncio.run(run())
+
+
+def test_module_level_state_leaks_across_sessions():
+    from belgavi_adk.lab import create_leaky_demo_agent
+
+    async def run():
+        async with (
+            LabSession(create_leaky_demo_agent()) as first,
+            LabSession(create_leaky_demo_agent()) as second,
+        ):
+            await first.turn("Select CASE-1043")
+            # The failure lesson 4 prevents: session B reads session A's case.
+            assert "CASE-1043" in await second.turn("Recall")
+            assert "selected_case" not in await second.state()
+
+    asyncio.run(run())
+
+
+def test_tool_context_state_is_written_to_the_session():
+    async def run():
+        async with LabSession(create_agent(4)) as session:
+            await session.turn("Select CASE-1042")
+            assert (await session.state())["selected_case"] == "CASE-1042"
 
     asyncio.run(run())

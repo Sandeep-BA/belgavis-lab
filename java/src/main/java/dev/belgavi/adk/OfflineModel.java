@@ -35,10 +35,17 @@ public final class OfflineModel extends BaseLlm {
         switch (role) {
           case "lookup" -> "lookupCase";
           case "session" -> prompt.toLowerCase().contains("recall") ? "recallCase" : "selectCase";
+          case "leaky" ->
+              prompt.toLowerCase().contains("recall") ? "recallSharedCase" : "selectSharedCase";
           default -> "";
         };
     if (!tool.isEmpty()) {
-      Map<String, Object> args = tool.equals("recallCase") ? Map.of() : Map.of("caseId", id);
+      Map<String, Object> args =
+          tool.equals("lookupCase")
+                  || tool.equals("selectCase")
+                  || tool.equals("selectSharedCase")
+              ? Map.of("caseId", id)
+              : Map.of();
       return reply(
           Part.builder()
               .functionCall(FunctionCall.builder().name(tool).args(args).build())
