@@ -8,7 +8,7 @@ import java.util.Set;
 
 public final class LessonAgents {
   /** Lessons released so far. Each new episode of Belgavi's AI Lab adds its own. */
-  public static final Set<Integer> RELEASED = Set.of(1, 2, 3, 9);
+  public static final Set<Integer> RELEASED = Set.of(1, 2, 3, 4, 9);
 
   private LessonAgents() {}
 
@@ -33,16 +33,33 @@ public final class LessonAgents {
       case "session" ->
           builder.tools(
               FunctionTool.create(tools, "selectCase"), FunctionTool.create(tools, "recallCase"));
+      case "leaky" -> {
+        var leaky = new LeakyCaseTools();
+        builder.tools(
+            FunctionTool.create(leaky, "selectSharedCase"),
+            FunctionTool.create(leaky, "recallSharedCase"));
+      }
       default -> {}
     }
     return builder.build();
+  }
+
+  /** Lesson 4 counterexample: state kept in a static field. Offline only, for the leak demo. */
+  public static BaseAgent createLeakyDemo() {
+    LeakyCaseTools.reset();
+    return agent(
+        "leaky_session",
+        "leaky",
+        "Select or recall a case as requested, using the tools.",
+        "answer",
+        false);
   }
 
   public static BaseAgent create(int lesson, boolean live) {
     if (!RELEASED.contains(lesson))
       throw new IllegalArgumentException(
           "Lesson " + lesson + " arrives with a later episode of Belgavi's AI Lab"
-              + " (youtube.com/@belgaviai). Released so far: 1, 2, 3 and 9.");
+              + " (youtube.com/@belgaviai). Released so far: 1, 2, 3, 4 and 9.");
     return switch (lesson) {
       case 1 ->
           agent(
@@ -52,7 +69,7 @@ public final class LessonAgents {
                   + " in one sentence.",
               "answer",
               live);
-      case 3 ->
+      case 3, 4 ->
           agent(
               "session",
               "session",

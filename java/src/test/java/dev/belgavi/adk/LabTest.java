@@ -40,7 +40,7 @@ class LabTest {
 
   @Test
   void unreleasedLessonsSayWhenTheyArrive() {
-    var error = assertThrows(IllegalArgumentException.class, () -> LessonAgents.create(4, false));
+    var error = assertThrows(IllegalArgumentException.class, () -> LessonAgents.create(5, false));
     assertTrue(error.getMessage().contains("later episode"));
   }
 
@@ -69,8 +69,8 @@ class LabTest {
 
   @Test
   void stateIsSessionLocal() {
-    try (var first = new LabSession(LessonAgents.create(3, false));
-        var second = new LabSession(LessonAgents.create(3, false))) {
+    try (var first = new LabSession(LessonAgents.create(4, false));
+        var second = new LabSession(LessonAgents.create(4, false))) {
       first.turn("Select CASE-1043");
       assertTrue(first.turn("Recall").contains("CASE-1043"));
       assertTrue(second.turn("Recall").contains("none"));
@@ -79,7 +79,7 @@ class LabTest {
 
   @Test
   void failedSelectionDoesNotOverwriteState() {
-    try (var session = new LabSession(LessonAgents.create(3, false))) {
+    try (var session = new LabSession(LessonAgents.create(4, false))) {
       session.turn("Select CASE-1043");
       session.turn("Select CASE-9999");
       assertTrue(session.turn("Recall").contains("CASE-1043"));
@@ -109,6 +109,25 @@ class LabTest {
       assertNotEquals(firstId, second.id());
       assertTrue(second.turn("Recall the selected case").contains("none"));
       assertFalse(second.state().containsKey("selected_case"));
+    }
+  }
+
+  @Test
+  void staticFieldStateLeaksAcrossSessions() {
+    try (var first = new LabSession(LessonAgents.createLeakyDemo());
+        var second = new LabSession(LessonAgents.createLeakyDemo())) {
+      first.turn("Select CASE-1043");
+      // The failure lesson 4 prevents: session B reads session A's case.
+      assertTrue(second.turn("Recall").contains("CASE-1043"));
+      assertFalse(second.state().containsKey("selected_case"));
+    }
+  }
+
+  @Test
+  void toolContextStateIsWrittenToTheSession() {
+    try (var session = new LabSession(LessonAgents.create(4, false))) {
+      session.turn("Select CASE-1042");
+      assertEquals("CASE-1042", session.state().get("selected_case"));
     }
   }
 }

@@ -25,7 +25,7 @@ public final class LabCli {
     try {
       try (var session = new LabSession(LessonAgents.create(lesson, live))) {
         System.out.println(session.turn(prompt));
-        if (lesson == 3 && !freshSession)
+        if ((lesson == 3 || lesson == 4) && !freshSession)
           System.out.println(session.turn("Recall the selected case"));
       }
       if (freshSession) {

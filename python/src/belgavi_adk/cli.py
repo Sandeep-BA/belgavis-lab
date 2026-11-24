@@ -22,7 +22,7 @@ def main():
     async def run():
         async with LabSession(create_agent(args.lesson, args.live)) as session:
             print(await session.turn(args.prompt))
-            if args.lesson == 3 and not args.fresh_session:
+            if args.lesson in (3, 4) and not args.fresh_session:
                 print(await session.turn("Recall the selected case"))
         if args.fresh_session:
             print("NEW SESSION for the follow-up (the bug)")
