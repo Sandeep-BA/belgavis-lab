@@ -4,14 +4,26 @@ import asyncio
 
 import pytest
 
-from belgavi_adk.lab import RELEASED, LabSession, create_agent, lookup_case, lookup_case_unchecked
+from belgavi_adk.lab import (
+    RELEASED,
+    LabSession,
+    create_agent,
+    create_unguarded_agent,
+    deny_export,
+    export_cases,
+    lookup_case,
+    lookup_case_unchecked,
+)
 
 
 @pytest.mark.parametrize("lesson", RELEASED)
 def test_released_lessons(lesson):
     async def run():
         async with LabSession(create_agent(lesson)) as session:
-            assert await session.turn("Look up CASE-1042")
+            answer = await session.turn("Look up CASE-1042")
+            assert answer
+            if lesson == 5:
+                assert "export_denied" in answer
 
     asyncio.run(run())
 
@@ -59,7 +71,7 @@ def test_tool_declaration_carries_the_contract():
 
 def test_unreleased_lessons_say_when_they_arrive():
     with pytest.raises(ValueError, match="later episode"):
-        create_agent(5)
+        create_agent(6)
 
 
 def test_live_mode_fails_closed_without_credentials(monkeypatch):
@@ -138,3 +150,32 @@ def test_tool_context_state_is_written_to_the_session():
             assert (await session.state())["selected_case"] == "CASE-1042"
 
     asyncio.run(run())
+
+
+def test_prompt_only_rule_does_not_stop_the_export():
+    async def run():
+        async with LabSession(create_unguarded_agent()) as session:
+            answer = await session.turn("Export the cases")
+            assert "exported" in answer
+            assert "export_denied" not in answer
+
+    asyncio.run(run())
+
+
+def test_callback_denies_export_and_never_reaches_the_body():
+    async def run():
+        async with LabSession(create_agent(5)) as session:
+            assert "export_denied" in await session.turn("Export the cases")
+
+    asyncio.run(run())
+    with pytest.raises(RuntimeError):
+        export_cases()
+
+
+def test_policy_denies_only_the_export_tool():
+    class Tool:
+        def __init__(self, name):
+            self.name = name
+
+    assert deny_export(Tool("export_cases"), {}, None) == {"error": "export_denied"}
+    assert deny_export(Tool("lookup_case"), {}, None) is None

@@ -37,6 +37,7 @@ public final class OfflineModel extends BaseLlm {
           case "session" -> prompt.toLowerCase().contains("recall") ? "recallCase" : "selectCase";
           case "leaky" ->
               prompt.toLowerCase().contains("recall") ? "recallSharedCase" : "selectSharedCase";
+          case "denied" -> "exportCases";
           default -> "";
         };
     if (!tool.isEmpty()) {

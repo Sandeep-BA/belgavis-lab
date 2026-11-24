@@ -65,4 +65,4 @@ Pinned for this lesson: ADK for Java 1.12.0 (`java/pom.xml`, [releases](https://
 
 ## Read next
 
-Lesson 5, a tool the model must never run, arrives with Episode 5. [AICassindra's state-management guide](https://aicassindra.com/blogs/adk/adk_state_management.html) provides background on state scopes. This lab uses one session-scoped key and does not implement the broader storage architecture.
+Next: [Lesson 5: deny a tool call before execution](05-tool-policy.md), a tool the model must never run. [AICassindra's state-management guide](https://aicassindra.com/blogs/adk/adk_state_management.html) provides background on state scopes. This lab uses one session-scoped key and does not implement the broader storage architecture.
