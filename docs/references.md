@@ -26,6 +26,7 @@ Read the executable lesson first, then the associated article for broader contex
 - **Lesson 1:** [ADK Java core module](https://aicassindra.com/blogs/adk_java/adk_java_core_module_overview.html). Use it to place the agent, runner and session within the framework.
 - **Lesson 3:** [ADK sessions](https://aicassindra.com/blogs/adk/adk_sessions.html). The application/user/session identity tuple and how events accumulate in one session. Its examples may use the Python SDK.
 - **Lesson 4:** [ADK state management](https://aicassindra.com/blogs/adk/adk_state_management.html). Background on state scopes; this lab uses one session-scoped key.
+- **Lesson 5:** [Authorization at the agent boundary](https://aicassindra.com/blogs/adk_java/adk_java_authz_at_agent_boundary.html). Where a real policy goes beyond this lesson's name-based deny list.
 
 AICassindra material is by Sandeep Belgavi. It is linked rather than republished. Exact SDK code should be taken from the tested source here and the pinned upstream release, not assumed from conceptual article snippets. No private AICassindra files or local editorial URLs are required by the learner project.
 

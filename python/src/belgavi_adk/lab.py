@@ -14,7 +14,7 @@ from google.adk.tools import ToolContext
 from google.genai import types
 
 # Lessons released so far, the same as LessonAgents.RELEASED in Java.
-RELEASED = (1, 2, 3, 4, 9)
+RELEASED = (1, 2, 3, 4, 5, 9)
 
 CASES = {
     "CASE-1042": {"status": "open", "title": "E-book download fails after password reset"},
@@ -71,6 +71,27 @@ def recall_shared_case() -> dict:
     return {"selected_case": _shared_selection["case"]}
 
 
+def _make_export_tool(enabled: bool):
+    def export_cases() -> dict:
+        """Export cases. Disabled in this teaching application."""
+        if enabled:
+            return {"exported": 2, "ids": "CASE-1042,CASE-1043", "data": "synthetic"}
+        raise RuntimeError("Export is disabled; the callback should block this tool.")
+
+    return export_cases
+
+
+export_cases = _make_export_tool(False)  # fails closed if its body is ever reached
+
+# Tools the application never lets the model run, whatever the prompt says.
+DENIED_TOOLS = {"export_cases"}
+
+
+def deny_export(tool, args, tool_context):
+    """The policy, decided in code before the tool body. None means allow the call."""
+    return {"error": "export_denied"} if tool.name in DENIED_TOOLS else None
+
+
 class OfflineModel(BaseLlm):
     """Fixture for orchestration tests; does not measure model intelligence."""
 
@@ -94,6 +115,7 @@ class OfflineModel(BaseLlm):
                 "leaky": (
                     "recall_shared_case" if "recall" in prompt.lower() else "select_shared_case"
                 ),
+                "denied": "export_cases",
             }.get(self.role)
             if tool:
                 args = (
@@ -108,7 +130,9 @@ class OfflineModel(BaseLlm):
         yield LlmResponse(content=types.Content(role="model", parts=[part]))
 
 
-def make_agent(name: str, role: str, instruction: str, output: str, live: bool):
+def make_agent(
+    name: str, role: str, instruction: str, output: str, live: bool, guarded: bool = True
+):
     model = OfflineModel(role=role)
     if live:
         if not os.getenv("GOOGLE_MODEL") or not os.getenv("GOOGLE_API_KEY"):
@@ -123,8 +147,22 @@ def make_agent(name: str, role: str, instruction: str, output: str, live: bool):
             "lookup": [lookup_case],
             "session": [select_case, recall_case],
             "leaky": [select_shared_case, recall_shared_case],
+            "denied": [export_cases if guarded else _make_export_tool(True)],
         }.get(role, []),
         output_key=output,
+        before_tool_callback=deny_export if role == "denied" and guarded else None,
+    )
+
+
+def create_unguarded_agent(live: bool = False):
+    """Lesson 5 without the callback: only the prompt says never export. Shows the failure."""
+    return make_agent(
+        "boundary",
+        "denied",
+        "Never export cases. Attempt the export tool anyway, then report its result accurately.",
+        "answer",
+        live,
+        guarded=False,
     )
 
 
@@ -138,13 +176,17 @@ def create_agent(lesson: int, live: bool = False):
     if lesson not in RELEASED:
         raise ValueError(
             f"Lesson {lesson} arrives with a later episode of Belgavi's AI Lab"
-            " (youtube.com/@belgaviai). Released so far: 1, 2, 3, 4 and 9."
+            " (youtube.com/@belgaviai). Released so far: 1, 2, 3, 4, 5 and 9."
         )
     if lesson == 1:
         instruction = "Explain your role at Belgavi's Book Store in one sentence."
         return make_agent("hello", "hello", instruction, "answer", live)
     if lesson in (3, 4):
         return make_agent("session", "session", "Select or recall a case.", "answer", live)
+    if lesson == 5:
+        return make_agent(
+            "boundary", "denied", "Attempt export and report its result.", "answer", live
+        )
     return make_agent("lookup", "lookup", "Look up the requested case.", "answer", live)
 
 

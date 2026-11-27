@@ -49,6 +49,7 @@ Expected: `OFFLINE FIXTURE: real ADK, simulated model`, followed by an `Offline 
 | 2 | A function tool that validates what the model sends | [Function tools](docs/02-function-tools.md) |
 | 3 | Sessions that keep a conversation together | [Sessions](docs/03-sessions.md) |
 | 4 | Explicit state without cross-session leaks | [State](docs/04-state.md) |
+| 5 | Deny a tool call before it runs | [Tool policy](docs/05-tool-policy.md) |
 
 Episode 2's contrast demo runs the same inputs through an unchecked tool and the validated one:
 
@@ -70,7 +71,14 @@ mvn -f java/pom.xml exec:java "-Dexec.mainClass=dev.belgavi.adk.StateLeakDemo"
 mvn -f java/pom.xml exec:java "-Dexec.args=4 offline 'Select CASE-1043'"
 ```
 
-**Coming next in the series:** guardrails, and workflows that chain lookup, policy and reply. Each lesson lands here with its episode. Watch or subscribe at [youtube.com/@belgaviai](https://www.youtube.com/@belgaviai).
+Episode 5 runs a prompt-only rule with no callback (the bug), then the same request with a before-tool callback (the fix):
+
+```sh
+mvn -f java/pom.xml exec:java "-Dexec.args=5 unguarded"
+mvn -f java/pom.xml exec:java "-Dexec.args=5 offline"
+```
+
+**Coming next in the series:** workflows that chain lookup, policy and reply. Each lesson lands here with its episode. Watch or subscribe at [youtube.com/@belgaviai](https://www.youtube.com/@belgaviai).
 
 ### Python comparison
 
@@ -83,6 +91,7 @@ python -m venv .venv
 .venv/bin/python -m belgavi_adk.contract_demo
 .venv/bin/python -m belgavi_adk.cli 3 --prompt "Select CASE-1043" --fresh-session
 .venv/bin/python -m belgavi_adk.state_demo
+.venv/bin/python -m belgavi_adk.cli 5 --unguarded
 ```
 
 ## 6. Understand the boundaries

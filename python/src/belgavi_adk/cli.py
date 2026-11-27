@@ -3,7 +3,7 @@
 import argparse
 import asyncio
 
-from .lab import RELEASED, LabSession, create_agent
+from .lab import RELEASED, LabSession, create_agent, create_unguarded_agent
 
 
 def main():
@@ -15,12 +15,22 @@ def main():
         action="store_true",
         help="lesson 3 demo: send the follow-up through a new session (the bug)",
     )
+    parser.add_argument("--unguarded", action="store_true", help="lesson 5 only: no callback")
     parser.add_argument("--prompt", default="Look up CASE-1042")
     args = parser.parse_args()
+    if args.unguarded and args.lesson != 5:
+        parser.error("--unguarded applies to lesson 5 only")
     print("LIVE MODEL: API usage may incur charges" if args.live else "OFFLINE FIXTURE: real ADK")
+    if args.unguarded:
+        print("UNGUARDED: prompt-only rule, no callback (lesson 5 demo)")
 
     async def run():
-        async with LabSession(create_agent(args.lesson, args.live)) as session:
+        agent = (
+            create_unguarded_agent(args.live)
+            if args.unguarded
+            else create_agent(args.lesson, args.live)
+        )
+        async with LabSession(agent) as session:
             print(await session.turn(args.prompt))
             if args.lesson in (3, 4) and not args.fresh_session:
                 print(await session.turn("Recall the selected case"))

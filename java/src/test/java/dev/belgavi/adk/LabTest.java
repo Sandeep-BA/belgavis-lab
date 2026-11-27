@@ -19,6 +19,8 @@ class LabTest {
     for (int lesson : LessonAgents.RELEASED) {
       try (var session = new LabSession(LessonAgents.create(lesson, false))) {
         assertFalse(session.turn("Look up CASE-1042").isBlank(), "lesson " + lesson);
+        if (lesson == 5)
+          assertTrue(session.state().get("answer").toString().contains("export_denied"));
       }
     }
   }
@@ -40,7 +42,7 @@ class LabTest {
 
   @Test
   void unreleasedLessonsSayWhenTheyArrive() {
-    var error = assertThrows(IllegalArgumentException.class, () -> LessonAgents.create(5, false));
+    var error = assertThrows(IllegalArgumentException.class, () -> LessonAgents.create(6, false));
     assertTrue(error.getMessage().contains("later episode"));
   }
 
@@ -129,5 +131,28 @@ class LabTest {
       session.turn("Select CASE-1042");
       assertEquals("CASE-1042", session.state().get("selected_case"));
     }
+  }
+
+  @Test
+  void promptOnlyRuleDoesNotStopTheExport() {
+    try (var session = new LabSession(LessonAgents.createUnguarded(false))) {
+      assertTrue(session.turn("Export the cases").contains("exported"));
+      assertFalse(session.state().get("answer").toString().contains("export_denied"));
+    }
+  }
+
+  @Test
+  void callbackDeniesExportAndNeverReachesTheBody() {
+    // The default tool set throws if the body runs, so a clean denial proves it was skipped.
+    try (var session = new LabSession(LessonAgents.create(5, false))) {
+      assertTrue(session.turn("Export the cases").contains("export_denied"));
+    }
+    assertThrows(IllegalStateException.class, () -> new CaseTools().exportCases());
+  }
+
+  @Test
+  void policyDeniesOnlyTheExportTool() {
+    assertEquals("export_denied", LessonAgents.beforeTool("exportCases").get().get("error"));
+    assertTrue(LessonAgents.beforeTool("lookupCase").isEmpty());
   }
 }
