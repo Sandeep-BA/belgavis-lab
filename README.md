@@ -103,6 +103,25 @@ python -m venv .venv
 - [Architecture](docs/architecture.md) explains the code layout and execution flow.
 - [References](docs/references.md) maps each lesson to the official docs, the pinned Google ADK source and relevant AICassindra articles.
 
+## Watch the series
+
+Every lesson has a video on [Belgavi's AI Lab](https://www.youtube.com/@belgaviai). [Subscribe](https://www.youtube.com/@belgaviai?sub_confirmation=1) to get each episode as it lands; its lesson arrives here on the same day.
+
+| Episode | Topic | Lesson | Video |
+| --- | --- | --- | --- |
+| 1 | What an AI agent really is, and how ADK runs one | [Your first agent](docs/01-first-agent.md) | coming soon |
+| 2 | Function tools with explicit contracts | with the episode | coming soon |
+| 3 | Sessions and multi-turn conversations | with the episode | coming soon |
+| 4 | Explicit state without cross-session leaks | with the episode | coming soon |
+| 5 | Block a tool call outside the prompt | with the episode | coming soon |
+| 6 | A sequential workflow with a visible handoff | with the episode | coming soon |
+| 7 | Parallel agents without shared-key collisions | with the episode | coming soon |
+| 8 | Bound your loops and your model calls | with the episode | coming soon |
+| 9 | Evaluate behavior, not polished answers | with the episode | coming soon |
+| 10 | Package an agent lab for repeatable development | with the episode | coming soon |
+
+When an episode is published, fill its Video cell with `python scripts/set_video_link.py <episode> <youtube-url-or-id>` (for example `python scripts/set_video_link.py 1 https://youtu.be/VIDEO_ID`). Link the lesson in the same commit when it is released.
+
 ## Reference projects and attribution
 
 [google/adk-java](https://github.com/google/adk-java) is the upstream framework. This application uses its released Maven artifact; the [pinned source map](docs/references.md) links the matching source tag for reading.
